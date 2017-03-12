@@ -1,56 +1,71 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Module dependencies.
  */
-const express = require("express");
-const path = require("path");
-const body_parser_1 = require("body-parser");
-const logger = require("morgan");
-const errorHandler = require("errorhandler");
-const methodOverride = require("method-override");
+import * as express from "express";
+import * as path from "path";
+import { json, urlencoded } from 'body-parser';
+import * as logger from "morgan";
+import * as errorHandler from "errorhandler";
+import * as multipart from "connect-multiparty";
+import * as methodOverride from "method-override"
 const fs = require("fs");
 const mongoose = require("mongoose");
-const config_1 = require("./routes/config");
-const index_1 = require("./routes/index");
+
+import { CONNECTION_STRING } from './routes/config';
+import { appRouter } from './routes/index';
+
 const app = express();
+
 let db;
 let cloudant;
 let fileToUpload;
 const dbCredentials = {
     dbName: 'my_sample_db'
 };
+
+
 mongoose.Promise = global.Promise;
+
 // all environments
 app.set('port', process.env.PORT || 3000);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.engine('html', require('ejs').renderFile);
 app.use(logger('dev'));
-app.use(body_parser_1.urlencoded({
+app.use(urlencoded({
     extended: true
 }));
-app.use(body_parser_1.json());
+app.use(json());
 app.use(methodOverride());
 app.use('/client', express.static(path.join(__dirname, './client/app')));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/style', express.static(path.join(__dirname, '/views/style')));
+
 //api
-index_1.appRouter(app);
+appRouter(app);
+
+
 // development only
 if ('development' == app.get('env')) {
     app.use(express.static(path.join(__dirname, './node_modules')));
     app.use(errorHandler());
 }
+
+
 //DB connect
-mongoose.connect(config_1.CONNECTION_STRING);
+mongoose.connect(CONNECTION_STRING);
+
 const dbConnection = mongoose.connection;
+
 dbConnection.on('error', () => {
     console.error('connection error!!!!');
 });
+
 dbConnection.once('open', () => {
     console.log('db connection done!!!');
-});
+})
+
+
 // function getDBCredentialsUrl(jsonData) {
 //     var vcapServices = JSON.parse(jsonData);
 //     // Pattern match to find the first instance of a Cloudant service in
@@ -62,12 +77,14 @@ dbConnection.once('open', () => {
 //         }
 //     }
 // }
+
 // function initDBConnection() {
 //     //When running on Bluemix, this variable will be set to a json object
 //     //containing all the service credentials of all the bound services
 //     if (process.env.VCAP_SERVICES) {
 //         dbCredentials.url = getDBCredentialsUrl(process.env.VCAP_SERVICES);
 //     } else { //When running locally, the VCAP_SERVICES will not be set
+
 //         // When running this app locally you can get your Cloudant credentials
 //         // from Bluemix (VCAP_SERVICES in "cf env" output or the Environment
 //         // Variables section for an app in the Bluemix console dashboard).
@@ -77,29 +94,44 @@ dbConnection.once('open', () => {
 //         // url will be in this format: https://username:password@xxxxxxxxx-bluemix.cloudant.com
 //         dbCredentials.url = getDBCredentialsUrl(fs.readFileSync("vcap-local.json", "utf-8"));
 //     }
+
 //     cloudant = require('cloudant')(dbCredentials.url);
+
 //     // check if DB exists if not create
 //     cloudant.db.create(dbCredentials.dbName, function (err, res) {
 //         if (err) {
 //             console.log('Could not create new db: ' + dbCredentials.dbName + ', it might already exist.');
 //         }
 //     });
+
 //     db = cloudant.use(dbCredentials.dbName);
+
 //     app.set('db', db);
 // }
+
 // initDBConnection();
+
 // app.get('/', routes.index);
+
 app.listen(app.get('port'), () => {
     console.log('server is running on port number' + app.get('port'));
-});
+})
+
+
+
 // interface employee{
+
 //     name : String,
 //     mobile: number,
 //     age : 5
 // }
+
+
 // app.post('/employee', (req: Request, res: Response)=>{
 //     let employee : employee = req.body;
+
 //     console.log(db);
+
 //    db.employee.insert((error: any, data: any) => {
 //         if (error){
 //          console.log(error);
@@ -109,16 +141,24 @@ app.listen(app.get('port'), () => {
 //     });
 //     //res.send('done');
 // });
+
+
 // http.createServer(app).listen(app.get('port'), '0.0.0.0', function() {
 //     console.log('Express server listening on port ' + app.get('port'));
 // });
+
+
+
 // function createResponseData(id, name, value, attachments) {
+
 //     var responseData = {
 //         id: id,
 //         name: sanitizeInput(name),
 //         value: sanitizeInput(value),
 //         attachements: []
 //     };
+
+
 //     attachments.forEach(function(item, index) {
 //         var attachmentData = {
 //             content_type: item.type,
@@ -126,17 +166,21 @@ app.listen(app.get('port'), () => {
 //             url: '/api/favorites/attach?id=' + id + '&key=' + item.key
 //         };
 //         responseData.attachements.push(attachmentData);
+
 //     });
 //     return responseData;
 // }
+
 // function sanitizeInput(str) {
 //     return String(str).replace(/&(?!amp;|lt;|gt;)/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 // }
 // var saveDocument = function(id, name, value, response) {
+
 //     if (id === undefined) {
 //         // Generated random id
 //         id = '';
 //     }
+
 //     db.insert({
 //         name: name,
 //         value: value
@@ -148,10 +192,13 @@ app.listen(app.get('port'), () => {
 //             response.sendStatus(200);
 //         response.end();
 //     });
+
 // }
+
 // app.get('/api/favorites/attach', function(request, response) {
 //     var doc = request.query.id;
 //     var key = request.query.key;
+
 //     db.attachment.get(doc, key, function(err, body) {
 //         if (err) {
 //             response.status(500);
@@ -160,6 +207,7 @@ app.listen(app.get('port'), () => {
 //             response.end();
 //             return;
 //         }
+
 //         response.status(200);
 //         response.setHeader("Content-Disposition", 'inline; filename="' + key + '"');
 //         response.write(body);
@@ -167,11 +215,16 @@ app.listen(app.get('port'), () => {
 //         return;
 //     });
 // });
+
 // app.post('/api/favorites/attach', multipartMiddleware, function(request, response) {
+
 //     console.log("Upload File Invoked..");
 //     console.log('Request: ' + JSON.stringify(request.headers));
+
 //     var id;
+
 //     db.get(request.query.id, function(err, existingdoc) {
+
 //         var isExistingDoc = false;
 //         if (!existingdoc) {
 //             id = '-1';
@@ -179,21 +232,29 @@ app.listen(app.get('port'), () => {
 //             id = existingdoc.id;
 //             isExistingDoc = true;
 //         }
+
 //         var name = sanitizeInput(request.query.name);
 //         var value = sanitizeInput(request.query.value);
+
 //         var file = request.files.file;
 //         var newPath = './public/uploads/' + file.name;
+
 //         var insertAttachment = function(file, id, rev, name, value, response) {
+
 //             fs.readFile(file.path, function(err, data) {
 //                 if (!err) {
+
 //                     if (file) {
+
 //                         db.attachment.insert(id, file.name, data, file.type, {
 //                             rev: rev
 //                         }, function(err, document) {
 //                             if (!err) {
 //                                 console.log('Attachment saved successfully.. ');
+
 //                                 db.get(document.id, function(err, doc) {
 //                                     console.log('Attachements from server --> ' + JSON.stringify(doc._attachments));
+
 //                                     var attachements = [];
 //                                     var attachData;
 //                                     for (var attachment in doc._attachments) {
@@ -228,12 +289,14 @@ app.listen(app.get('port'), () => {
 //                 }
 //             });
 //         }
+
 //         if (!isExistingDoc) {
 //             existingdoc = {
 //                 name: name,
 //                 value: value,
 //                 create_date: new Date()
 //             };
+
 //             // save doc
 //             db.insert({
 //                 name: name,
@@ -242,35 +305,48 @@ app.listen(app.get('port'), () => {
 //                 if (err) {
 //                     console.log(err);
 //                 } else {
+
 //                     existingdoc = doc;
 //                     console.log("New doc created ..");
 //                     console.log(existingdoc);
 //                     insertAttachment(file, existingdoc.id, existingdoc.rev, name, value, response);
+
 //                 }
 //             });
+
 //         } else {
 //             console.log('Adding attachment to existing doc.');
 //             console.log(existingdoc);
 //             insertAttachment(file, existingdoc._id, existingdoc._rev, name, value, response);
 //         }
+
 //     });
+
 // });
+
 // app.post('/api/favorites', function(request, response) {
+
 //     console.log("Create Invoked..");
 //     console.log("Name: " + request.body.name);
 //     console.log("Value: " + request.body.value);
+
 //     // var id = request.body.id;
 //     var name = sanitizeInput(request.body.name);
 //     var value = sanitizeInput(request.body.value);
+
 //     saveDocument(null, name, value, response);
+
 // });
+
 // app.delete('/api/favorites', function(request, response) {
+
 //     console.log("Delete Invoked..");
 //     var id = request.query.id;
 //     // var rev = request.query.rev; // Rev can be fetched from request. if
 //     // needed, send the rev from client
 //     console.log("Removing document of ID: " + id);
 //     console.log('Request Query: ' + JSON.stringify(request.query));
+
 //     db.get(id, {
 //         revs_info: true
 //     }, function(err, doc) {
@@ -286,13 +362,19 @@ app.listen(app.get('port'), () => {
 //             });
 //         }
 //     });
+
 // });
+
 // app.put('/api/favorites', function(request, response) {
+
 //     console.log("Update Invoked..");
+
 //     var id = request.body.id;
 //     var name = sanitizeInput(request.body.name);
 //     var value = sanitizeInput(request.body.value);
+
 //     console.log("ID: " + id);
+
 //     db.get(id, {
 //         revs_info: true
 //     }, function(err, doc) {
@@ -310,8 +392,11 @@ app.listen(app.get('port'), () => {
 //         }
 //     });
 // });
+
 // app.get('/api/favorites', function(request, response) {
+
 //     console.log("Get method invoked.. ")
+
 //     db = cloudant.use(dbCredentials.dbName);
 //     var docList = [];
 //     var i = 0;
@@ -331,6 +416,7 @@ app.listen(app.get('port'), () => {
 //                     if (err) {
 //                         console.log(err);
 //                     } else {
+
 //                         console.log('Document : ' + JSON.stringify(doc));
 //                         var responseData = createResponseData(
 //                             doc.id,
@@ -344,14 +430,18 @@ app.listen(app.get('port'), () => {
 //                     }
 //                 });
 //             } else {
+
 //                 body.rows.forEach(function(document) {
+
 //                     db.get(document.id, {
 //                         revs_info: true
 //                     }, function(err, doc) {
 //                         if (!err) {
 //                             if (doc['_attachments']) {
+
 //                                 var attachments = [];
 //                                 for (var attribute in doc['_attachments']) {
+
 //                                     if (doc['_attachments'][attribute] && doc['_attachments'][attribute]['content_type']) {
 //                                         attachments.push({
 //                                             "key": attribute,
@@ -365,12 +455,14 @@ app.listen(app.get('port'), () => {
 //                                     doc.name,
 //                                     doc.value,
 //                                     attachments);
+
 //                             } else {
 //                                 var responseData = createResponseData(
 //                                     doc._id,
 //                                     doc.name,
 //                                     doc.value, []);
 //                             }
+
 //                             docList.push(responseData);
 //                             i++;
 //                             if (i >= len) {
@@ -382,11 +474,13 @@ app.listen(app.get('port'), () => {
 //                             console.log(err);
 //                         }
 //                     });
+
 //                 });
 //             }
+
 //         } else {
 //             console.log(err);
 //         }
 //     });
-// }); 
-//# sourceMappingURL=app.js.map
+
+// });

@@ -1,8 +1,10 @@
 applications:
 - path: .
-  memory: 256M
+  memory: 512M
   instances: 1
   domain: mybluemix.net
-  name: singhh-node-sample
-  host: singhh-node-sample
+  name: singhh-sample
+  host: singhh-sample
   disk_quota: 1024M
+  services:
+  - singhh-sample-cloudantNoSQLDB
